@@ -57,6 +57,15 @@
 
 		this.keyAcceleration = now - prevTime < 200 ? Math.min(this.keyAcceleration + acceleration, 50) : 0;
 
+		for (var key in this.options.keyBindings) {
+			if (this.options.keyBindings[key] === e.keyCode) {
+				if ( !this.moved ) {
+					this._execEvent('scrollStart');
+				}
+				break;
+			}
+		}
+		
 		switch ( e.keyCode ) {
 			case this.options.keyBindings.pageUp:
 				if ( this.hasHorizontalScroll && !this.hasVerticalScroll ) {
