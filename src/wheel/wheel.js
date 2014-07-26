@@ -14,25 +14,11 @@
 	_wheel: function (e) {
 		if ( !this.enabled ) {
 			return;
-		}
-
-		e.preventDefault();
-		e.stopPropagation();
+		}		
 
 		var wheelDeltaX, wheelDeltaY,
 			newX, newY,
-			that = this;
-
-		if ( this.wheelTimeout === undefined ) {
-			that._execEvent('scrollStart');
-		}
-
-		// Execute the scrollEnd event after 400ms the wheel stopped scrolling
-		clearTimeout(this.wheelTimeout);
-		this.wheelTimeout = setTimeout(function () {
-			that._execEvent('scrollEnd');
-			that.wheelTimeout = undefined;
-		}, 400);
+			that = this;		
 
 		if ( 'deltaX' in e ) {
 			wheelDeltaX = -e.deltaX;
@@ -49,12 +35,38 @@
 		}
 
 		wheelDeltaX *= this.options.invertWheelDirection;
-		wheelDeltaY *= this.options.invertWheelDirection;
+		wheelDeltaY *= this.options.invertWheelDirection;		
 
-		if ( !this.hasVerticalScroll ) {
-			wheelDeltaX = wheelDeltaY;
-			wheelDeltaY = 0;
+		if (!this.options.eventPassthrough) {
+			e.preventDefault();
 		}
+		if (!this.options.autoWheelDirection) {
+			if (this.options.scrollX && !this.options.scrollY && Math.abs(wheelDeltaX) < Math.abs(wheelDeltaY)) {
+				return;
+			} else {
+				e.preventDefault();
+			}
+			if (this.options.scrollY && !this.options.scrollX && Math.abs(wheelDeltaY) < Math.abs(wheelDeltaX)) {
+				return;
+			}
+		} else {
+			if ( !this.hasVerticalScroll ) {
+				wheelDeltaX = wheelDeltaY;
+				wheelDeltaY = 0;
+			}
+		}
+
+		if ( this.wheelTimeout === undefined ) {
+			that._execEvent('scrollStart');
+		}
+		
+		clearTimeout(this.wheelTimeout);
+		this.wheelTimeout = setTimeout(function () {
+			that._execEvent('scrollEnd');
+			that.wheelTimeout = undefined;
+		}, 400);
+		
+		e.stopPropagation();
 
 		if ( this.options.snap ) {
 			newX = this.currentPage.pageX;
