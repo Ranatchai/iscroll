@@ -476,7 +476,9 @@ IScroll.prototype = {
 		this.directionY = deltaY > 0 ? -1 : deltaY < 0 ? 1 : 0;
 
 		if ( !this.moved ) {
-			this._execEvent('scrollStart');
+			if ((deltaX !== 0 && this.options.scrollX) || (deltaY !== 0 && this.options.scrollY)) {
+				this._execEvent('scrollStart');
+			}
 		}
 
 		this.moved = true;

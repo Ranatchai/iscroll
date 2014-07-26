@@ -258,6 +258,7 @@ function IScroll (el, options) {
 		resizeScrollbars: true,
 
 		mouseWheelSpeed: 20,
+		autoWheelDirection: false,
 
 		snapThreshold: 0.334,
 
@@ -513,7 +514,9 @@ IScroll.prototype = {
 		this.directionY = deltaY > 0 ? -1 : deltaY < 0 ? 1 : 0;
 
 		if ( !this.moved ) {
-			this._execEvent('scrollStart');
+			if ((deltaX !== 0 && this.options.scrollX) || (deltaY !== 0 && this.options.scrollY)) {
+				this._execEvent('scrollStart');
+			}
 		}
 
 		this.moved = true;
@@ -1206,25 +1209,11 @@ IScroll.prototype = {
 	_wheel: function (e) {
 		if ( !this.enabled ) {
 			return;
-		}
-
-		e.preventDefault();
-		e.stopPropagation();
+		}		
 
 		var wheelDeltaX, wheelDeltaY,
 			newX, newY,
-			that = this;
-
-		if ( this.wheelTimeout === undefined ) {
-			that._execEvent('scrollStart');
-		}
-
-		// Execute the scrollEnd event after 400ms the wheel stopped scrolling
-		clearTimeout(this.wheelTimeout);
-		this.wheelTimeout = setTimeout(function () {
-			that._execEvent('scrollEnd');
-			that.wheelTimeout = undefined;
-		}, 400);
+			that = this;		
 
 		if ( 'deltaX' in e ) {
 			wheelDeltaX = -e.deltaX;
@@ -1241,12 +1230,38 @@ IScroll.prototype = {
 		}
 
 		wheelDeltaX *= this.options.invertWheelDirection;
-		wheelDeltaY *= this.options.invertWheelDirection;
+		wheelDeltaY *= this.options.invertWheelDirection;		
 
-		if ( !this.hasVerticalScroll ) {
-			wheelDeltaX = wheelDeltaY;
-			wheelDeltaY = 0;
+		if (!this.options.eventPassthrough) {
+			e.preventDefault();
 		}
+		if (!this.options.autoWheelDirection) {
+			if (this.options.scrollX && !this.options.scrollY && Math.abs(wheelDeltaX) < Math.abs(wheelDeltaY)) {
+				return;
+			} else {
+				e.preventDefault();
+			}
+			if (this.options.scrollY && !this.options.scrollX && Math.abs(wheelDeltaY) < Math.abs(wheelDeltaX)) {
+				return;
+			}
+		} else {
+			if ( !this.hasVerticalScroll ) {
+				wheelDeltaX = wheelDeltaY;
+				wheelDeltaY = 0;
+			}
+		}
+
+		if ( this.wheelTimeout === undefined ) {
+			that._execEvent('scrollStart');
+		}
+		
+		clearTimeout(this.wheelTimeout);
+		this.wheelTimeout = setTimeout(function () {
+			that._execEvent('scrollEnd');
+			that.wheelTimeout = undefined;
+		}, 400);
+		
+		e.stopPropagation();
 
 		if ( this.options.snap ) {
 			newX = this.currentPage.pageX;
@@ -1621,13 +1636,13 @@ IScroll.prototype = {
 				newX += snap ? -1 : 5 + this.keyAcceleration>>0;
 				break;
 			case this.options.keyBindings.up:
-				newY += snap ? 1 : 5 + this.keyAcceleration>>0;
+				newY += snap ? -1 : 5 + this.keyAcceleration>>0;
 				break;
 			case this.options.keyBindings.right:
 				newX -= snap ? -1 : 5 + this.keyAcceleration>>0;
 				break;
 			case this.options.keyBindings.down:
-				newY -= snap ? 1 : 5 + this.keyAcceleration>>0;
+				newY -= snap ? -1 : 5 + this.keyAcceleration>>0;
 				break;
 			default:
 				return;
