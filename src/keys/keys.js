@@ -84,13 +84,13 @@
 				newX += snap ? -1 : 5 + this.keyAcceleration>>0;
 				break;
 			case this.options.keyBindings.up:
-				newY += snap ? 1 : 5 + this.keyAcceleration>>0;
+				newY += snap ? -1 : 5 + this.keyAcceleration>>0;
 				break;
 			case this.options.keyBindings.right:
 				newX -= snap ? -1 : 5 + this.keyAcceleration>>0;
 				break;
 			case this.options.keyBindings.down:
-				newY -= snap ? 1 : 5 + this.keyAcceleration>>0;
+				newY -= snap ? -1 : 5 + this.keyAcceleration>>0;
 				break;
 			default:
 				return;
